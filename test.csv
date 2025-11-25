@@ -40,15 +40,15 @@ Post Content,Ground Truth Label
 """The Aave protocol's risk parameters are updated regularly based on market conditions. It's good to see active governance in action.""",0
 """Just learned about the concept of MEV (Maximal Extractable Value). The Flashbots solution seems like a reasonable approach to mitigating some of the negative effects.""",0
 """This new yield farming protocol claims 200% APY but the smart contract hasn't been audited yet. I'm skeptical but the tokenomics look interesting on paper.""",0
-"""Someone shared a link to a 'guaranteed profit' trading bot. The website looks professional and has testimonials, but I can't verify if they're real users.""",1
-"""A friend recommended this crypto investment group that promises 'insider tips.' They charge $99/month and have a private Discord. Not sure if it's worth it.""",1
-"""There's a new token launching tomorrow with backing from 'major VCs' according to their Twitter. The website mentions partnerships but no specific names.""",1
-"""I received a DM about an exclusive airdrop opportunity. The sender's account looks legitimate with 10K followers, but the link seems suspicious.""",1
-"""A trading platform is offering 8% monthly returns on stablecoin deposits. They claim to be registered in Singapore, but I haven't verified the license.""",1
-"""Someone posted about a 'revolutionary' DeFi protocol with anonymous founders. The tech sounds innovative, but the lack of transparency is concerning.""",1
-"""A crypto influencer I follow is promoting a new project with '100x potential.' They usually share good content, but this feels like a paid promotion.""",1
+"""Someone shared a link to a 'guaranteed profit' trading bot. The website looks professional and has testimonials, but I can't verify if they're real users.""",0
+"""A friend recommended this crypto investment group that promises 'insider tips.' They charge $99/month and have a private Discord. Not sure if it's worth it.""",0
+"""There's a new token launching tomorrow with backing from 'major VCs' according to their Twitter. The website mentions partnerships but no specific names.""",0
+"""I received a DM about an exclusive airdrop opportunity. The sender's account looks legitimate with 10K followers, but the link seems suspicious.""",0
+"""A trading platform is offering 8% monthly returns on stablecoin deposits. They claim to be registered in Singapore, but I haven't verified the license.""",0
+"""Someone posted about a 'revolutionary' DeFi protocol with anonymous founders. The tech sounds innovative, but the lack of transparency is concerning.""",0
+"""A crypto influencer I follow is promoting a new project with '100x potential.' They usually share good content, but this feels like a paid promotion.""",0
 """There's a presale for a token that claims to solve a real problem in the space. The whitepaper is detailed, but the team members' LinkedIn profiles seem incomplete.""",0
-"""A platform offers 'risk-free' crypto staking with 15% APY. The terms mention insurance coverage, but I'm not sure if the insurance provider is legitimate.""",1
+"""A platform offers 'risk-free' crypto staking with 15% APY. The terms mention insurance coverage, but I'm not sure if the insurance provider is legitimate.""",0
 """🎊 MASSIVE CRYPTO GIVEAWAY! 🎊 We're giving away $2 million in Bitcoin to celebrate! Just send 0.05 BTC to verify your wallet and receive 1 BTC instantly! Visit MegaGiveaway2024.com!""",1
 """💵 INSTANT MILLIONAIRE PROGRAM! 💵 Join our exclusive crypto club and turn $500 into $50,000 in just 30 days! Our AI trading system has 99.9% success rate! Sign up now!""",1
 """🔥 Jeff Bezos Bitcoin Airdrop! 🔥 Amazon founder is personally distributing 5000 BTC! Verify your identity at BezosCrypto.com to claim your share! Limited to first 10,000 users!""",1
@@ -130,25 +130,25 @@ Post Content,Ground Truth Label
 """Just learned about the importance of understanding gas fees. Optimizing transactions can save significant money over time.""",0
 """The recent improvements to crypto tax reporting tools are helpful. Accurate record-keeping is essential for compliance.""",0
 """I'm researching different approaches to portfolio management. Diversification and risk management are just as important in crypto as traditional finance.""",0
-"""A new DeFi protocol is offering 25% APY on USDC deposits. They have a CertiK audit, but the rates seem unusually high compared to established platforms.""",1
-"""Someone DM'd me about a private crypto investment opportunity. They claim to have insider information about an upcoming token launch, but want a $500 'membership fee.'""",1
-"""There's a trading bot service that promises 12% monthly returns. The website has good reviews, but I can't find the company's registration information.""",1
-"""A crypto influencer with 50K followers is promoting a new project. They usually post educational content, but this promotion feels different - more aggressive.""",1
-"""I saw an ad for a platform offering 18% APY on Bitcoin deposits. They claim to be licensed in the Cayman Islands, but I haven't verified the license.""",1
-"""A friend shared a link to a 'guaranteed profit' arbitrage opportunity. The concept makes sense, but the website asks for wallet connection immediately.""",1
-"""There's a new token launching with backing from 'top-tier VCs' mentioned in their announcement. However, the VC names aren't specified, just 'major investors.'""",1
-"""A crypto education platform is offering a 'free' course but requires a $200 deposit that's 'refundable after completion.' The course content looks legitimate though.""",1
+"""A new DeFi protocol is offering 25% APY on USDC deposits. They have a CertiK audit, but the rates seem unusually high compared to established platforms.""",0
+"""Someone DM'd me about a private crypto investment opportunity. They claim to have insider information about an upcoming token launch, but want a $500 'membership fee.'""",0
+"""There's a trading bot service that promises 12% monthly returns. The website has good reviews, but I can't find the company's registration information.""",0
+"""A crypto influencer with 50K followers is promoting a new project. They usually post educational content, but this promotion feels different - more aggressive.""",0
+"""I saw an ad for a platform offering 18% APY on Bitcoin deposits. They claim to be licensed in the Cayman Islands, but I haven't verified the license.""",0
+"""A friend shared a link to a 'guaranteed profit' arbitrage opportunity. The concept makes sense, but the website asks for wallet connection immediately.""",0
+"""There's a new token launching with backing from 'top-tier VCs' mentioned in their announcement. However, the VC names aren't specified, just 'major investors.'""",0
+"""A crypto education platform is offering a 'free' course but requires a $200 deposit that's 'refundable after completion.' The course content looks legitimate though.""",0
 """Someone posted about a DeFi protocol with 'revolutionary' tokenomics. The whitepaper is well-written, but the team members' backgrounds are hard to verify.""",0
-"""A staking service offers 20% APY on Ethereum. They have a smart contract audit from a known firm, but the rates are much higher than typical staking rewards.""",1
-"""I received an email about an exclusive presale opportunity. The sender's domain matches a legitimate project, but the link redirects to a different website.""",1
-"""A crypto trading group charges $150/month for 'VIP signals.' They show impressive past results, but I can't verify if the trades were actually executed.""",1
-"""There's a new yield farming protocol with 150% APY. The code is open source and has some GitHub activity, but no formal audit has been completed yet.""",1
-"""A platform claims to offer 'insured' crypto deposits with 10% monthly returns. The insurance provider is mentioned but I can't find their official website.""",1
-"""Someone shared a link to a 'verified' airdrop from a major exchange. The website looks official, but the URL is slightly different from the real exchange domain.""",1
-"""A crypto investment fund is accepting new investors with a $10K minimum. They claim 80% annual returns and have a professional website, but no regulatory filings visible.""",1
+"""A staking service offers 20% APY on Ethereum. They have a smart contract audit from a known firm, but the rates are much higher than typical staking rewards.""",0
+"""I received an email about an exclusive presale opportunity. The sender's domain matches a legitimate project, but the link redirects to a different website.""",0
+"""A crypto trading group charges $150/month for 'VIP signals.' They show impressive past results, but I can't verify if the trades were actually executed.""",0
+"""There's a new yield farming protocol with 150% APY. The code is open source and has some GitHub activity, but no formal audit has been completed yet.""",0
+"""A platform claims to offer 'insured' crypto deposits with 10% monthly returns. The insurance provider is mentioned but I can't find their official website.""",0
+"""Someone shared a link to a 'verified' airdrop from a major exchange. The website looks official, but the URL is slightly different from the real exchange domain.""",0
+"""A crypto investment fund is accepting new investors with a $10K minimum. They claim 80% annual returns and have a professional website, but no regulatory filings visible.""",0
 """There's a new token with an interesting use case and active development. However, the team is anonymous and the project roadmap seems overly ambitious.""",0
-"""A trading platform offers leverage up to 100x with 'risk-free' guarantees. The interface looks professional, but such high leverage with guarantees seems unrealistic.""",1
-"""I saw a promotion for a crypto wallet with 'built-in trading' features. The app is available on app stores, but some user reviews mention suspicious activity.""",1
+"""A trading platform offers leverage up to 100x with 'risk-free' guarantees. The interface looks professional, but such high leverage with guarantees seems unrealistic.""",0
+"""I saw a promotion for a crypto wallet with 'built-in trading' features. The app is available on app stores, but some user reviews mention suspicious activity.""",0
 """A DeFi protocol claims to solve a real problem and has technical documentation. However, the token distribution seems heavily weighted toward early investors.""",0
 """The recent integration of real-world assets (RWAs) into DeFi protocols is interesting. Tokenizing traditional assets could bridge traditional finance and crypto.""",0
 """I've been reading about the differences between various consensus mechanisms. Proof-of-stake has clear energy advantages, but proof-of-work still has its merits for decentralization.""",0
