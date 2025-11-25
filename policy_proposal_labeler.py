@@ -424,43 +424,68 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
     print("ADVANCED FRAUD DETECTION MODEL TRAINING")
     print("=" * 60)
     
-    print(f"\n[1/6] Loading dataset: {csv_path}")
+    print(f"\n[1/8] Loading training dataset: {csv_path}")
     df = pd.read_csv(csv_path)
     
     if "Post Content" not in df.columns or "Ground Truth Label" not in df.columns:
         raise ValueError("CSV file must contain 'Post Content' and 'Ground Truth Label' columns.")
     
+    # Filter out rows with NaN labels
+    print(f"Total rows in CSV: {len(df)}")
+    df = df.dropna(subset=["Ground Truth Label"])
+    print(f"Rows with valid labels: {len(df)}")
+    
     texts = df["Post Content"].astype(str).tolist()
     labels = np.array(df["Ground Truth Label"].tolist())
     
-    print(f"Loaded {len(texts)} posts")
-    print(f"Label distribution: {pd.Series(labels).value_counts().to_dict()}")
+    print(f"Loaded {len(texts)} training posts")
+    print(f"Training label distribution: {pd.Series(labels).value_counts().to_dict()}")
     
-    print(f"\n[2/6] Extracting features...")
+    print(f"\n[2/8] Loading test dataset: test.csv")
+    test_csv_path = "test.csv"
+    if not os.path.exists(test_csv_path):
+        raise FileNotFoundError(f"Test CSV file '{test_csv_path}' not found. Please ensure test.csv exists.")
+    
+    df_test = pd.read_csv(test_csv_path)
+    
+    if "Post Content" not in df_test.columns or "Ground Truth Label" not in df_test.columns:
+        raise ValueError("Test CSV file must contain 'Post Content' and 'Ground Truth Label' columns.")
+    
+    # Filter out rows with NaN labels
+    print(f"Total rows in test CSV: {len(df_test)}")
+    df_test = df_test.dropna(subset=["Ground Truth Label"])
+    print(f"Rows with valid labels in test CSV: {len(df_test)}")
+    
+    texts_test = df_test["Post Content"].astype(str).tolist()
+    y_test = np.array(df_test["Ground Truth Label"].tolist())
+    
+    print(f"Loaded {len(texts_test)} test posts")
+    print(f"Test label distribution: {pd.Series(y_test).value_counts().to_dict()}")
+    
+    print(f"\n[3/8] Extracting features for training data...")
     EMBEDDER = SentenceTransformer(EMBEDDER_MODEL_NAME)
-    X_all, feature_names = extract_all_features(texts, EMBEDDER)
+    X_train, feature_names = extract_all_features(texts, EMBEDDER)
     
-    print(f"\n[3/7] Splitting data (80/20)...")
-    indices = np.arange(len(texts))
-    X_train, X_test, y_train, y_test, idx_train, idx_test = train_test_split(
-        X_all, labels, indices, test_size=0.2, random_state=42, stratify=labels
-    )
-    texts_train = [texts[i] for i in idx_train]
-    texts_test = [texts[i] for i in idx_test]
+    print(f"\n[4/8] Extracting features for test data...")
+    X_test, _ = extract_all_features(texts_test, EMBEDDER)
     
-    print(f"\n[4/7] Training n-gram and keyword matching model...")
+    # Use all training data (no split)
+    texts_train = texts
+    y_train = labels
+    
+    print(f"\n[5/8] Training n-gram and keyword matching model...")
     ngram_model, ngram_vectorizer = train_ngram_model(
         texts_train, y_train, texts_test, y_test
     )
     
-    print(f"\n[5/7] Scaling features...")
+    print(f"\n[6/8] Scaling features...")
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
     feature_selector = None
     if use_feature_selection:
-        print(f"\n[6/7] Applying feature selection...")
+        print(f"\n[7/8] Applying feature selection...")
         k_best = min(500, X_train_scaled.shape[1])
         feature_selector = SelectKBest(score_func=f_classif, k=k_best)
         X_train_selected = feature_selector.fit_transform(X_train_scaled, y_train)
@@ -470,7 +495,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         X_train_selected = X_train_scaled
         X_test_selected = X_test_scaled
     
-    print(f"\n[7/7] Training ensemble classifier...")
+    print(f"\n[8/8] Training ensemble classifier...")
     
     model_results = {}
     
