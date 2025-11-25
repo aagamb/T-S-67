@@ -1,40 +1,26 @@
 # CS 5342 Assignment 3: Automated Moderator (Bluesky Labeler)
 
-## Group Information
-- **Group Number**: [Please add your group number]
-- **Group Members**: [Please add your group member names]
-
-## Project Overview
-This project implements an advanced fraud detection labeler for Bluesky posts using a sophisticated ensemble-based machine learning approach. The labeler identifies potentially fraudulent content by analyzing semantic embeddings, linguistic features, and n-gram patterns.
-
 ## Files Submitted
 
 ### 1. `policy_proposal_labeler.py`
 The main implementation file containing:
 - **Feature Engineering**: 
   - Semantic embeddings using Sentence Transformers (384 dimensions)
-  - 28 handcrafted linguistic features (text statistics, URL analysis, keyword matching, etc.)
+  - 28 linguistic features (text statistics, URL analysis, keyword matching, etc.)
 - **N-gram Model**: TF-IDF vectorization with 1-3 gram sequences, trained with XGBoost
 - **Ensemble Models**: 
   - Base ensemble combining Logistic Regression, Random Forest, and XGBoost
   - Final ensemble combining base models (60%) with n-gram model (40%)
-- **Training Function**: `train_model_from_excel()` - trains the complete model pipeline
+- **Training Function**: `train_model_from_csv()` - trains the complete model pipeline
 - **Prediction Functions**: 
   - `predict_post(text)` - single post prediction
   - `predict_batch(texts)` - batch prediction for efficiency
 - **Visualization**: `plot_model_comparison()` - generates performance comparison graphs
 
-### 2. `Ground Truth Sheet.xlsx`
+### 2. `data.csv`
 Training dataset containing:
 - **Post Content**: Text content of Bluesky posts
 - **Ground Truth Label**: Binary labels (0 = Legitimate, 1 = Fraud)
-
-The model reads directly from this Excel file. If you need to convert to CSV format for the assignment submission, you can use:
-```python
-import pandas as pd
-df = pd.read_excel("Ground Truth Sheet.xlsx")
-df.to_csv("data.csv", index=False)
-```
 
 ### 3. `model_comparison.png`
 Visualization showing model performance comparison:
@@ -44,18 +30,11 @@ Visualization showing model performance comparison:
 - Combined metrics visualization
 - Highlights ensemble models with red borders
 
-### 4. `.gitignore`
-Excludes unnecessary files from version control:
-- Trained model files (`.joblib`)
-- System files (`.DS_Store`)
-- Temporary files
-- Python cache files
-
 ## Dependencies
 
 Install required packages:
 ```bash
-pip install pandas numpy scikit-learn sentence-transformers xgboost joblib matplotlib openpyxl nltk
+pip install pandas numpy scikit-learn sentence-transformers xgboost joblib matplotlib nltk
 ```
 
 For NLTK data (if not automatically downloaded):
@@ -67,12 +46,7 @@ nltk.download('stopwords')
 
 ## How to Run
 
-### Step 1: Prepare Your Data
-Ensure your Excel file (`Ground Truth Sheet.xlsx`) has two columns:
-- `Post Content`: Text content of posts
-- `Ground Truth Label`: Binary labels (0 or 1)
-
-### Step 2: Train the Model
+### Step 1: Train the Model
 Run the training script:
 ```bash
 python policy_proposal_labeler.py
@@ -80,10 +54,10 @@ python policy_proposal_labeler.py
 
 Or with custom parameters:
 ```bash
-python policy_proposal_labeler.py "Ground Truth Sheet.xlsx" True True
+python policy_proposal_labeler.py "data.csv" True True
 ```
 Arguments:
-1. Excel file path (default: "Ground Truth Sheet.xlsx")
+1. CSV file path (default: "data.csv")
 2. Use ensemble (default: True)
 3. Use feature selection (default: True)
 
@@ -161,43 +135,3 @@ probabilities = predict_batch(texts, return_probabilities=True)
 ## Testing and Evaluation
 
 The model is evaluated on a held-out test set (20% of data):
-- Individual model performance is tracked
-- Ensemble performance is compared against individual models
-- Visualization shows clear improvement of ensemble over individual models
-- Cross-validation is performed (where applicable)
-
-## Performance Results
-
-After training, you will see:
-- Individual model metrics (F1, Precision, Accuracy)
-- Base ensemble metrics
-- Final ensemble metrics
-- Visual comparison graph saved as `model_comparison.png`
-
-The ensemble typically outperforms individual models by combining their strengths.
-
-## Notes
-
-- The model requires sufficient training data (recommended: 100+ posts minimum)
-- Training time depends on dataset size and hardware
-- Model files are large and excluded from git (see `.gitignore`)
-- The code automatically handles class imbalance using class weights
-- Feature selection reduces dimensionality for faster training
-
-## Troubleshooting
-
-**Issue**: NLTK not available
-- **Solution**: Install with `pip install nltk` and download required data
-
-**Issue**: XGBoost import error
-- **Solution**: Install with `pip install xgboost`
-
-**Issue**: Excel file not found
-- **Solution**: Ensure `Ground Truth Sheet.xlsx` is in the same directory or provide full path
-
-**Issue**: Out of memory during training
-- **Solution**: Reduce `max_features` in n-gram model or disable feature selection
-
-## Contact
-For questions or issues, please contact the group members.
-

@@ -413,7 +413,7 @@ class CustomEnsemble:
             return base_proba
 
 
-def train_model_from_excel(excel_path, use_ensemble=True, use_feature_selection=True):
+def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True):
     
     
     
@@ -424,11 +424,11 @@ def train_model_from_excel(excel_path, use_ensemble=True, use_feature_selection=
     print("ADVANCED FRAUD DETECTION MODEL TRAINING")
     print("=" * 60)
     
-    print(f"\n[1/6] Loading dataset: {excel_path}")
-    df = pd.read_excel(excel_path)
+    print(f"\n[1/6] Loading dataset: {csv_path}")
+    df = pd.read_csv(csv_path)
     
     if "Post Content" not in df.columns or "Ground Truth Label" not in df.columns:
-        raise ValueError("Excel file must contain 'Post Content' and 'Ground Truth Label' columns.")
+        raise ValueError("CSV file must contain 'Post Content' and 'Ground Truth Label' columns.")
     
     texts = df["Post Content"].astype(str).tolist()
     labels = np.array(df["Ground Truth Label"].tolist())
@@ -711,7 +711,7 @@ def load_model():
     
     if not os.path.exists(CLASSIFIER_PATH) or not os.path.exists(EMBEDDER_PATH):
         raise FileNotFoundError(
-            "Model files not found. Train the model first using train_model_from_excel()."
+            "Model files not found. Train the model first using train_model_from_csv()."
         )
     
     if not os.path.exists(SCALER_PATH):
@@ -862,22 +862,22 @@ def predict_batch(texts, return_probabilities=False):
 if __name__ == "__main__":
     import sys
     
-    excel_path = "Ground Truth Sheet.xlsx"
+    csv_path = "data.csv"
     
     use_ensemble = True
     use_feature_selection = True
     
     if len(sys.argv) > 1:
-        excel_path = sys.argv[1]
+        csv_path = sys.argv[1]
     if len(sys.argv) > 2:
         use_ensemble = sys.argv[2].lower() == 'true'
     if len(sys.argv) > 3:
         use_feature_selection = sys.argv[3].lower() == 'true'
     
-    print(f"Training with:")
-    print(f"  - Excel file: {excel_path}")
+    print("Training with:")
+    print(f"  - CSV file: {csv_path}")
     print(f"  - Ensemble: {use_ensemble}")
     print(f"  - Feature selection: {use_feature_selection}")
     print()
     
-    train_model_from_excel(excel_path, use_ensemble=use_ensemble, use_feature_selection=use_feature_selection)
+    train_model_from_csv(csv_path, use_ensemble=use_ensemble, use_feature_selection=use_feature_selection)
