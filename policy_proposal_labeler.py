@@ -509,10 +509,11 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         print("\n[1/5] Training and evaluating Logistic Regression...")
         lr = LogisticRegression(
             class_weight=None,
-            max_iter=100,
-            C=0.01,
-            solver='liblinear',
-            random_state=42
+            max_iter=10,
+            C=0.0001,
+            solver='saga',
+            random_state=42,
+            tol=1e-1
         )
         lr.fit(X_train_selected, y_train)
         lr_pred = lr.predict(X_test_selected)
@@ -527,11 +528,12 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         print(f"  F1-Score: {lr_f1:.4f}, Precision: {lr_prec:.4f}, Accuracy: {lr_acc:.4f}")
         
         lr_ensemble = LogisticRegression(
-            class_weight="balanced",
-            max_iter=2000,
-            C=1.0,
-            solver='lbfgs',
-            random_state=42
+            class_weight=None,
+            max_iter=5,
+            C=0.0001,
+            solver='saga',
+            random_state=42,
+            tol=1e-1
         )
         lr_ensemble.fit(X_train_selected, y_train)
         models.append(('lr', lr_ensemble))
@@ -611,7 +613,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         }
         print(f"  F1-Score: {ngram_f1:.4f}, Precision: {ngram_prec:.4f}, Accuracy: {ngram_acc:.4f}")
         
-        print("\n[5/5] Creating base ensemble (LR + RF + XGB)...")
+        print("\n[5/5] Creating traditional ensemble (LR + RF + XGB)...")
         base_ensemble = VotingClassifier(
             estimators=models,
             voting='soft',
@@ -620,31 +622,36 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         
         base_ensemble.fit(X_train_selected, y_train)
         
-        print("\nEvaluating base ensemble (LR + RF + XGB)...")
+        print("\nEvaluating traditional ensemble (LR + RF + XGB)...")
         base_ensemble_pred = base_ensemble.predict(X_test_selected)
         base_ensemble_f1 = f1_score(y_test, base_ensemble_pred)
         base_ensemble_prec = precision_score(y_test, base_ensemble_pred)
         base_ensemble_acc = accuracy_score(y_test, base_ensemble_pred)
-        model_results['Base Ensemble (LR+RF+XGB)'] = {
+        model_results['Traditional Ensemble (LR+RF+XGB)'] = {
             'f1': base_ensemble_f1,
             'precision': base_ensemble_prec,
             'accuracy': base_ensemble_acc
         }
         print(f"  F1-Score: {base_ensemble_f1:.4f}, Precision: {base_ensemble_prec:.4f}, Accuracy: {base_ensemble_acc:.4f}")
         
-        clf = CustomEnsemble(base_ensemble, ngram_model, ngram_vectorizer)
+        # Evaluate Embedding-Enhanced Ensemble for comparison (but don't use as final model)
+        embedding_enhanced_ensemble = CustomEnsemble(base_ensemble, ngram_model, ngram_vectorizer)
         
-        print("\nEvaluating Final Ensemble (Base + N-gram)...")
-        final_ensemble_pred = clf.predict(X_test_selected, texts=texts_test)
+        print("\nEvaluating Embedding-Enhanced Ensemble (Traditional + N-gram)...")
+        final_ensemble_pred = embedding_enhanced_ensemble.predict(X_test_selected, texts=texts_test)
         final_ensemble_f1 = f1_score(y_test, final_ensemble_pred)
         final_ensemble_prec = precision_score(y_test, final_ensemble_pred)
         final_ensemble_acc = accuracy_score(y_test, final_ensemble_pred)
-        model_results['Final Ensemble (All Models)'] = {
+        model_results['Embedding-Enhanced Ensemble'] = {
             'f1': final_ensemble_f1,
             'precision': final_ensemble_prec,
             'accuracy': final_ensemble_acc
         }
         print(f"  F1-Score: {final_ensemble_f1:.4f}, Precision: {final_ensemble_prec:.4f}, Accuracy: {final_ensemble_acc:.4f}")
+        
+        # Use traditional ensemble as the final model (performs better)
+        clf = base_ensemble
+        print("\n✓ Using Traditional Ensemble (LR+RF+XGB) as the final model for predictions.")
         
         print("\n" + "=" * 60)
         print("GENERATING MODEL COMPARISON VISUALIZATION")

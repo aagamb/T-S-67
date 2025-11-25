@@ -82,7 +82,13 @@ The script will:
 - `model_comparison.png` - Performance visualization
 
 ### Step 4: Make Predictions
-After training, use the model to predict on new posts:
+After training, use `predictions.py` to make predictions on new posts:
+
+```bash
+python predictions.py
+```
+
+The `predictions.py` script will run predictions on test cases and display the results. For custom predictions, you can also import the functions directly:
 
 ```python
 from policy_proposal_labeler import predict_post, predict_batch
@@ -131,7 +137,3 @@ probabilities = predict_batch(texts, return_probabilities=True)
 - **Accuracy**: Overall correctness
 - **ROC-AUC**: Area under the ROC curve
 - **Confusion Matrix**: Detailed breakdown of predictions
-
-## Testing and Evaluation
-
-The model is evaluated on a held-out test set (20% of data):
