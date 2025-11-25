@@ -481,7 +481,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         print("INDIVIDUAL MODEL EVALUATION")
         print("=" * 60)
         
-        print("\n[1/4] Training and evaluating Logistic Regression...")
+        print("\n[1/5] Training and evaluating Logistic Regression...")
         lr = LogisticRegression(
             class_weight=None,
             max_iter=100,
@@ -511,7 +511,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         lr_ensemble.fit(X_train_selected, y_train)
         models.append(('lr', lr_ensemble))
         
-        print("\n[2/4] Training and evaluating Random Forest...")
+        print("\n[2/5] Training and evaluating Random Forest...")
         rf = RandomForestClassifier(
             n_estimators=10,
             max_depth=3,
@@ -545,7 +545,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         rf_ensemble.fit(X_train_selected, y_train)
         models.append(('rf', rf_ensemble))
         
-        print("\n[3/4] Training and evaluating XGBoost...")
+        print("\n[3/5] Training and evaluating XGBoost...")
         xgb_model = xgb.XGBClassifier(
             n_estimators=200,
             max_depth=6,
@@ -570,7 +570,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         print(f"  F1-Score: {xgb_f1:.4f}, Precision: {xgb_prec:.4f}, Accuracy: {xgb_acc:.4f}")
         models.append(('xgb', xgb_model))
         
-        print("\n[4/4] Evaluating N-gram Model...")
+        print("\n[4/5] Evaluating N-gram Model...")
         ngram_result = predict_with_ngram_model(texts_test, ngram_model, ngram_vectorizer)
         if isinstance(ngram_result, tuple):
             ngram_pred, _ = ngram_result
