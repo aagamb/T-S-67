@@ -1,9 +1,18 @@
 # CS 5342 Assignment 3: Automated Moderator (Bluesky Labeler)
 
-## Files Submitted
+## 1. Group Information
 
-### 1. `policy_proposal_labeler.py`
-The main implementation file containing:
+**Group Members:**
+- Andreas Kilbinger
+- Ali Hasan
+- Mark Farley
+- Aagam Bakliwal
+
+## 2. List and Description of Submitted Files
+
+### Core Implementation Files
+
+**`policy_proposal_labeler.py`** — Main implementation file containing the complete fraud detection labeler system. This file includes:
 - **Feature Engineering**: 
   - Semantic embeddings using Sentence Transformers (384 dimensions)
   - 28 linguistic features (text statistics, URL analysis, keyword matching, etc.)
@@ -17,37 +26,83 @@ The main implementation file containing:
   - `predict_batch(texts)` - batch prediction for efficiency
 - **Visualization**: `plot_model_comparison()` - generates performance comparison graphs
 
-### 2. `data.csv`
-Training dataset containing:
+**`predictions.py`** — Testing script that runs predictions on predefined test cases including clear scams, clear non-scams, and ambiguous cases. Demonstrates the labeler's functionality and outputs predictions with confidence scores.
+
+### Data Files
+
+**`data.csv`** — Training dataset containing:
 - **Post Content**: Text content of Bluesky posts
 - **Ground Truth Label**: Binary labels (0 = Legitimate, 1 = Fraud)
 
-### 3. `model_comparison.png`
-Visualization showing model performance comparison:
+**`test.csv`** — Test dataset used for model evaluation, containing the same structure as `data.csv` with separate test posts and their ground truth labels.
+
+### Model Files (Generated After Training)
+
+**`fraud_classifier.joblib`** — Main ensemble classifier model (saved after training)
+
+**`fraud_embedder.joblib`** — Sentence transformer model for semantic embeddings (saved after training)
+
+**`fraud_scaler.joblib`** — Feature scaler for normalizing input features (saved after training)
+
+**`fraud_ngram_model.joblib`** — N-gram model (XGBoost classifier trained on TF-IDF features) (saved after training)
+
+**`fraud_ngram_vectorizer.joblib`** — TF-IDF vectorizer for n-gram feature extraction (saved after training)
+
+**`fraud_feature_selector.joblib`** — Feature selector for dimensionality reduction (saved after training, if feature selection is enabled)
+
+### Visualization Files
+
+**`model_comparison.png`** — Visualization showing model performance comparison:
 - F1-Score comparison across all models
 - Precision comparison
 - Accuracy comparison
 - Combined metrics visualization
 - Highlights ensemble models with red borders
 
-## Dependencies
+## 3. Instructions on How to Run and Test Your Code
 
-Install required packages:
-```bash
-pip install pandas numpy scikit-learn sentence-transformers xgboost joblib matplotlib nltk
-```
+### Prerequisites
 
-For NLTK data (if not automatically downloaded):
-```python
-import nltk
-nltk.download('punkt')
-nltk.download('stopwords')
-```
+Before running the code, ensure you have the following installed:
 
-## How to Run
+- **Python 3.7 or higher**
+- **pip** (Python package installer)
 
-### Step 1: Train the Model
-Run the training script:
+### How to Set Up the Environment
+
+1. **Install Required Python Packages**
+
+   Install all required dependencies using pip:
+   ```bash
+   pip install pandas numpy scikit-learn sentence-transformers xgboost joblib matplotlib nltk
+   ```
+
+2. **Download NLTK Data (if not automatically downloaded)**
+
+   The code will attempt to automatically download NLTK data, but if needed, you can manually download it:
+   ```python
+   import nltk
+   nltk.download('punkt')
+   nltk.download('stopwords')
+   ```
+
+   Or run this in a Python shell:
+   ```bash
+   python -c "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
+   ```
+
+3. **Verify Required Files**
+
+   Ensure the following files are present in the project directory:
+   - `data.csv` (training dataset)
+   - `test.csv` (test dataset)
+
+### How to Run Your Labeler
+
+#### Step 1: Train the Model
+
+Train the fraud detection model using the training dataset:
+
 ```bash
 python policy_proposal_labeler.py
 ```
@@ -56,12 +111,13 @@ Or with custom parameters:
 ```bash
 python policy_proposal_labeler.py "data.csv" True True
 ```
-Arguments:
-1. CSV file path (default: "data.csv")
-2. Use ensemble (default: True)
-3. Use feature selection (default: True)
 
-### Step 3: Training Process
+**Command Arguments:**
+1. CSV file path (default: `"data.csv"`)
+2. Use ensemble (default: `True`) - Set to `True` to use ensemble models, `False` for single Random Forest
+3. Use feature selection (default: `True`) - Set to `True` to enable feature selection, `False` to use all features
+
+**Training Process:**
 The script will:
 1. Load and preprocess the dataset
 2. Extract semantic embeddings and linguistic features
@@ -72,7 +128,7 @@ The script will:
 7. Generate performance comparison visualization
 8. Save all trained models
 
-**Output files created:**
+**Output files created after training:**
 - `fraud_classifier.joblib` - Main ensemble classifier
 - `fraud_embedder.joblib` - Sentence transformer model
 - `fraud_scaler.joblib` - Feature scaler
@@ -81,14 +137,19 @@ The script will:
 - `fraud_feature_selector.joblib` - Feature selector (if enabled)
 - `model_comparison.png` - Performance visualization
 
-### Step 4: Make Predictions
-After training, use `predictions.py` to make predictions on new posts:
+#### Step 2: Make Predictions
+
+After training, use `predictions.py` to make predictions on test cases:
 
 ```bash
 python predictions.py
 ```
 
-The `predictions.py` script will run predictions on test cases and display the results. For custom predictions, you can also import the functions directly:
+This script will run predictions on predefined test cases (clear scams, clear non-scams, and ambiguous cases) and display the results with confidence scores.
+
+**Alternative: Using the Labeler Programmatically**
+
+You can also import and use the prediction functions directly in Python:
 
 ```python
 from policy_proposal_labeler import predict_post, predict_batch
@@ -107,33 +168,31 @@ predictions = predict_batch(texts)
 probabilities = predict_batch(texts, return_probabilities=True)
 ```
 
-## Model Architecture
+### How to Run Tests
 
-### Feature Extraction
-1. **Semantic Embeddings** (384 dims): Uses `sentence-transformers/all-MiniLM-L6-v2`
-2. **Linguistic Features** (28 dims):
-   - Text statistics (char/word/sentence counts)
-   - Character patterns (uppercase ratio, punctuation, etc.)
-   - URL/domain analysis
-   - Email/phone detection
-   - Fraud keyword matching
-   - Financial term detection
-   - Urgency indicators
-   - Call-to-action patterns
-   - Repetition detection
-   - Special characters
+The evaluation is performed automatically during training. The training script evaluates the model on the test dataset (`test.csv`) and outputs:
 
-### Models
-1. **Logistic Regression**: Linear classifier (suboptimal version for comparison)
-2. **Random Forest**: Tree-based ensemble (suboptimal version for comparison)
-3. **XGBoost**: Gradient boosting classifier
-4. **N-gram Model**: TF-IDF (1-3 grams) + XGBoost
-5. **Base Ensemble**: Voting classifier (LR + RF + XGB)
-6. **Final Ensemble**: Weighted combination (60% base + 40% n-gram)
+1. **Classification Report** - Precision, recall, F1-score for each class
+2. **Confusion Matrix** - Detailed breakdown of predictions
+3. **ROC-AUC Score** - Area under the ROC curve
+4. **Model Comparison Visualization** - Saved as `model_comparison.png`
 
-### Evaluation Metrics
-- **F1-Score**: Harmonic mean of precision and recall
-- **Precision**: Proportion of predicted frauds that are actually fraud
-- **Accuracy**: Overall correctness
-- **ROC-AUC**: Area under the ROC curve
-- **Confusion Matrix**: Detailed breakdown of predictions
+**To reproduce the evaluation:**
+
+1. Ensure `test.csv` exists in the project directory
+2. Run the training script:
+   ```bash
+   python policy_proposal_labeler.py
+   ```
+3. The script will automatically:
+   - Load the test dataset
+   - Evaluate all models (individual and ensemble)
+   - Print evaluation metrics to the console
+   - Generate and save the comparison visualization
+
+**Expected Output:**
+- Console output showing F1-scores, precision, accuracy for each model
+- Classification report with per-class metrics
+- Confusion matrix
+- ROC-AUC score
+- Model comparison visualization saved to `model_comparison.png`
