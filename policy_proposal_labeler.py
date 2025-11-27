@@ -38,15 +38,19 @@ except ImportError:
     print("Warning: NLTK not available. Some features will be disabled.")
 
 
+# Model configuration
 EMBEDDER_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 EMBEDDER = None
 
+# File paths for saved model components
 CLASSIFIER_PATH = "fraud_classifier.joblib"
 EMBEDDER_PATH = "fraud_embedder.joblib"
 SCALER_PATH = "fraud_scaler.joblib"
 FEATURE_SELECTOR_PATH = "fraud_feature_selector.joblib"
 NGRAM_VECTORIZER_PATH = "fraud_ngram_vectorizer.joblib"
 NGRAM_MODEL_PATH = "fraud_ngram_model.joblib"
+
+# Keywords and patterns commonly found in fraudulent content
 FRAUD_KEYWORDS = [
     'send money', 'wire transfer', 'urgent payment', 'verify account',
     'click here', 'limited time', 'act now', 'guaranteed return',
@@ -62,23 +66,32 @@ FINANCIAL_TERMS = [
     'venmo', 'paypal', 'cashapp', 'zelle', 'western union'
 ]
 
+# URL shorteners that are often used in phishing attempts
 SUSPICIOUS_DOMAINS = [
     'bit.ly', 'tinyurl', 'goo.gl', 't.co', 'short.link', 'rebrand.ly'
 ]
 
 
 def extract_linguistic_features(text):
+    """
+    Extract linguistic and structural features from text that may indicate fraud.
+    
+    Returns a dictionary of features including character counts, ratios, URL/email counts,
+    keyword matches, and other text-based indicators.
+    """
     text_lower = text.lower()
     text_len = len(text)
     
     features = {}
     
+    # Basic text statistics
     features['char_count'] = text_len
     features['word_count'] = len(text.split())
     features['sentence_count'] = len(re.split(r'[.!?]+', text)) if text_len > 0 else 0
     features['avg_word_length'] = np.mean([len(w) for w in text.split()]) if text.split() else 0
     features['avg_sentence_length'] = features['word_count'] / max(features['sentence_count'], 1)
     
+    # Character composition ratios (often different in fraudulent content)
     features['uppercase_ratio'] = sum(1 for c in text if c.isupper()) / max(text_len, 1)
     features['digit_ratio'] = sum(1 for c in text if c.isdigit()) / max(text_len, 1)
     features['punctuation_ratio'] = sum(1 for c in text if c in '.,!?;:') / max(text_len, 1)
@@ -86,11 +99,13 @@ def extract_linguistic_features(text):
     features['question_count'] = text.count('?')
     features['caps_lock_sequences'] = len(re.findall(r'[A-Z]{3,}', text))
     
+    # URL detection and analysis
     url_pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     urls = re.findall(url_pattern, text)
     features['url_count'] = len(urls)
     features['has_url'] = 1 if urls else 0
     
+    # Check for suspicious URL shorteners
     suspicious_domain_count = 0
     for url in urls:
         try:
@@ -101,12 +116,14 @@ def extract_linguistic_features(text):
             pass
     features['suspicious_domain_count'] = suspicious_domain_count
     
+    # Contact information patterns
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     features['email_count'] = len(re.findall(email_pattern, text))
     
     phone_pattern = r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}'
     features['phone_count'] = len(re.findall(phone_pattern, text))
     
+    # Keyword matching for fraud indicators
     fraud_keyword_matches = sum(1 for keyword in FRAUD_KEYWORDS if keyword in text_lower)
     financial_term_matches = sum(1 for term in FINANCIAL_TERMS if term in text_lower)
     features['fraud_keyword_count'] = fraud_keyword_matches
@@ -114,12 +131,14 @@ def extract_linguistic_features(text):
     features['fraud_keyword_ratio'] = fraud_keyword_matches / max(len(FRAUD_KEYWORDS), 1)
     features['financial_term_ratio'] = financial_term_matches / max(len(FINANCIAL_TERMS), 1)
     
+    # Urgency and call-to-action patterns (common in scams)
     urgency_words = ['urgent', 'immediately', 'asap', 'now', 'hurry', 'limited', 'expires', 'deadline']
     features['urgency_word_count'] = sum(1 for word in urgency_words if word in text_lower)
     
     cta_patterns = ['click', 'call', 'send', 'verify', 'confirm', 'update', 'act now']
     features['cta_count'] = sum(1 for pattern in cta_patterns if pattern in text_lower)
     
+    # Text repetition and diversity metrics
     words = text_lower.split()
     if words:
         word_freq = Counter(words)
@@ -127,9 +146,11 @@ def extract_linguistic_features(text):
         features['max_word_repetition'] = most_common_freq
         features['unique_word_ratio'] = len(set(words)) / len(words)
     
+    # Financial symbols
     features['currency_symbol_count'] = text.count('$') + text.count('€') + text.count('£')
     features['percentage_count'] = text.count('%')
     
+    # NLTK-based features (if available)
     if NLTK_AVAILABLE:
         try:
             tokens = word_tokenize(text_lower)
@@ -147,8 +168,16 @@ def extract_linguistic_features(text):
 
 
 def extract_all_features(texts, embedder=None):
+    """
+    Extract combined features: semantic embeddings + linguistic features.
     
+    Args:
+        texts: List of text strings to process
+        embedder: Optional SentenceTransformer model (uses global if None)
     
+    Returns:
+        Combined feature array and list of linguistic feature names
+    """
     if embedder is None:
         global EMBEDDER
         if EMBEDDER is None:
@@ -156,9 +185,11 @@ def extract_all_features(texts, embedder=None):
             EMBEDDER = SentenceTransformer(EMBEDDER_MODEL_NAME)
         embedder = EMBEDDER
     
+    # Generate semantic embeddings using sentence transformer
     print("Extracting semantic embeddings...")
     embeddings = embedder.encode(texts, show_progress_bar=True, convert_to_numpy=True)
     
+    # Extract hand-crafted linguistic features
     print("Extracting linguistic features...")
     linguistic_features = []
     for i, text in enumerate(texts):
@@ -169,6 +200,7 @@ def extract_all_features(texts, embedder=None):
     
     linguistic_array = np.array(linguistic_features)
     
+    # Combine embeddings (semantic) with linguistic features (rule-based)
     combined_features = np.hstack([embeddings, linguistic_array])
     
     print(f"Feature extraction complete. Shape: {combined_features.shape}")
@@ -180,8 +212,12 @@ def extract_all_features(texts, embedder=None):
 
 
 def train_ngram_model(texts_train, y_train, texts_test=None, y_test=None):
+    """
+    Train an n-gram based model using TF-IDF vectorization and XGBoost.
     
-    
+    This model captures word patterns and sequences that are characteristic
+    of fraudulent content, complementing the embedding-based approach.
+    """
     print("\n" + "-" * 60)
     print("Training N-gram and Keyword Matching Model")
     print("-" * 60)
@@ -242,8 +278,11 @@ def train_ngram_model(texts_train, y_train, texts_test=None, y_test=None):
 
 
 def predict_with_ngram_model(texts, ngram_model, vectorizer):
+    """
+    Make predictions using the trained n-gram model.
     
-    
+    Returns predictions and optionally probabilities for the input texts.
+    """
     if isinstance(texts, str):
         texts = [texts]
     
@@ -263,7 +302,11 @@ def predict_with_ngram_model(texts, ngram_model, vectorizer):
 
 
 def plot_model_comparison(model_results, save_path="model_comparison.png"):
+    """
+    Generate visualization comparing performance metrics across different models.
     
+    Creates a 2x2 subplot showing F1-score, precision, accuracy, and combined metrics.
+    """
     model_names = list(model_results.keys())
     
     f1_scores = [model_results[name]['f1'] for name in model_names]
@@ -383,6 +426,11 @@ def plot_model_comparison(model_results, save_path="model_comparison.png"):
 
 
 class CustomEnsemble:
+    """
+    Ensemble that combines base model predictions with n-gram model predictions.
+    
+    Uses weighted averaging (60% base ensemble, 40% n-gram model) to make final predictions.
+    """
     def __init__(self, base_ensemble, ngram_model, ngram_vectorizer):
         self.base_ensemble = base_ensemble
         self.ngram_model = ngram_model
@@ -392,6 +440,7 @@ class CustomEnsemble:
         base_proba = self.base_ensemble.predict_proba(X)
         
         if texts is not None:
+            # Combine predictions: 60% weight on base ensemble, 40% on n-gram model
             ngram_proba = self.ngram_model.predict_proba(
                 self.ngram_vectorizer.transform(texts)
             )
@@ -404,6 +453,7 @@ class CustomEnsemble:
         base_proba = self.base_ensemble.predict_proba(X)
         
         if texts is not None:
+            # Combine probabilities: 60% weight on base ensemble, 40% on n-gram model
             ngram_proba = self.ngram_model.predict_proba(
                 self.ngram_vectorizer.transform(texts)
             )
@@ -414,10 +464,17 @@ class CustomEnsemble:
 
 
 def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True):
+    """
+    Main training function that loads data, extracts features, trains models, and saves results.
     
+    Args:
+        csv_path: Path to training CSV with 'Post Content' and 'Ground Truth Label' columns
+        use_ensemble: Whether to use ensemble of multiple models (default: True)
+        use_feature_selection: Whether to apply feature selection (default: True)
     
-    
-    
+    Returns:
+        Tuple of (classifier, scaler, feature_selector, ngram_model, ngram_vectorizer)
+    """
     global EMBEDDER
     
     print("=" * 60)
@@ -441,6 +498,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
     print(f"Loaded {len(texts)} training posts")
     print(f"Training label distribution: {pd.Series(labels).value_counts().to_dict()}")
     
+    # Load separate test dataset
     print(f"\n[2/8] Loading test dataset: test.csv")
     test_csv_path = "test.csv"
     if not os.path.exists(test_csv_path):
@@ -462,6 +520,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
     print(f"Loaded {len(texts_test)} test posts")
     print(f"Test label distribution: {pd.Series(y_test).value_counts().to_dict()}")
     
+    # Extract semantic embeddings and linguistic features
     print(f"\n[3/8] Extracting features for training data...")
     EMBEDDER = SentenceTransformer(EMBEDDER_MODEL_NAME)
     X_train, feature_names = extract_all_features(texts, EMBEDDER)
@@ -469,7 +528,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
     print(f"\n[4/8] Extracting features for test data...")
     X_test, _ = extract_all_features(texts_test, EMBEDDER)
     
-    # Use all training data (no split)
+    # Use all training data (no train/val split since we have separate test set)
     texts_train = texts
     y_train = labels
     
@@ -483,10 +542,11 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
     
+    # Feature selection to reduce dimensionality and improve model performance
     feature_selector = None
     if use_feature_selection:
         print(f"\n[7/8] Applying feature selection...")
-        k_best = min(500, X_train_scaled.shape[1])
+        k_best = min(500, X_train_scaled.shape[1])  # Select top 500 features
         feature_selector = SelectKBest(score_func=f_classif, k=k_best)
         X_train_selected = feature_selector.fit_transform(X_train_scaled, y_train)
         X_test_selected = feature_selector.transform(X_test_scaled)
@@ -613,10 +673,11 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         }
         print(f"  F1-Score: {ngram_f1:.4f}, Precision: {ngram_prec:.4f}, Accuracy: {ngram_acc:.4f}")
         
+        # Create voting ensemble combining Logistic Regression, Random Forest, and XGBoost
         print("\n[5/5] Creating traditional ensemble (LR + RF + XGB)...")
         base_ensemble = VotingClassifier(
             estimators=models,
-            voting='soft',
+            voting='soft',  # Use probability averaging
             n_jobs=-1
         )
         
@@ -634,7 +695,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         }
         print(f"  F1-Score: {base_ensemble_f1:.4f}, Precision: {base_ensemble_prec:.4f}, Accuracy: {base_ensemble_acc:.4f}")
         
-        # Evaluate Embedding-Enhanced Ensemble for comparison (but don't use as final model)
+        # Evaluate enhanced ensemble (base + n-gram) for comparison
         embedding_enhanced_ensemble = CustomEnsemble(base_ensemble, ngram_model, ngram_vectorizer)
         
         print("\nEvaluating Embedding-Enhanced Ensemble (Traditional + N-gram)...")
@@ -649,7 +710,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         }
         print(f"  F1-Score: {final_ensemble_f1:.4f}, Precision: {final_ensemble_prec:.4f}, Accuracy: {final_ensemble_acc:.4f}")
         
-        # Use traditional ensemble as the final model (performs better)
+        # Use traditional ensemble as the final model (typically performs better)
         clf = base_ensemble
         print("\n✓ Using Traditional Ensemble (LR+RF+XGB) as the final model for predictions.")
         
@@ -670,6 +731,7 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
         )
         clf.fit(X_train_selected, y_train)
     
+    # Cross-validation to assess model stability (skip for custom ensemble)
     is_custom_ensemble = hasattr(clf, '__class__') and clf.__class__.__name__ == 'CustomEnsemble'
     if not is_custom_ensemble:
         print("\nPerforming cross-validation...")
@@ -738,7 +800,12 @@ def train_model_from_csv(csv_path, use_ensemble=True, use_feature_selection=True
 
 
 def load_model():
+    """
+    Load all saved model components from disk.
     
+    Returns:
+        Tuple of (classifier, embedder, scaler, feature_selector, ngram_model, ngram_vectorizer)
+    """
     global EMBEDDER
     
     if not os.path.exists(CLASSIFIER_PATH) or not os.path.exists(EMBEDDER_PATH):
@@ -771,6 +838,7 @@ def load_model():
     return CLASSIFIER, EMBEDDER, SCALER, FEATURE_SELECTOR, NGRAM_MODEL, NGRAM_VECTORIZER
 
 
+# Global variables for lazy loading of models
 _LOADED_CLASSIFIER = None
 _LOADED_SCALER = None
 _LOADED_FEATURE_SELECTOR = None
@@ -779,31 +847,38 @@ _LOADED_NGRAM_VECTORIZER = None
 
 
 def predict_post(text, return_probability=False):
+    """
+    Predict whether a single post is fraudulent.
     
+    Args:
+        text: Text content of the post to classify
+        return_probability: If True, also return the probability score
     
-    
-    
+    Returns:
+        Prediction (0 or 1), or tuple of (prediction, probability) if return_probability=True
+    """
     global EMBEDDER, _LOADED_CLASSIFIER, _LOADED_SCALER, _LOADED_FEATURE_SELECTOR
     global _LOADED_NGRAM_MODEL, _LOADED_NGRAM_VECTORIZER
     
+    # Lazy load models on first prediction
     if _LOADED_CLASSIFIER is None or EMBEDDER is None or _LOADED_SCALER is None:
         (_LOADED_CLASSIFIER, EMBEDDER, _LOADED_SCALER, _LOADED_FEATURE_SELECTOR,
          _LOADED_NGRAM_MODEL, _LOADED_NGRAM_VECTORIZER) = load_model()
     
+    # Extract features: semantic embeddings + linguistic features
     embedding = EMBEDDER.encode([text], convert_to_numpy=True)
-    
     linguistic_feat_dict = extract_linguistic_features(text)
     linguistic_features = np.array([list(linguistic_feat_dict.values())])
-    
     combined_features = np.hstack([embedding, linguistic_features])
     
+    # Apply scaling and feature selection
     features_scaled = _LOADED_SCALER.transform(combined_features)
-    
     if _LOADED_FEATURE_SELECTOR is not None:
         features_final = _LOADED_FEATURE_SELECTOR.transform(features_scaled)
     else:
         features_final = features_scaled
     
+    # Check if using custom ensemble (requires text input)
     is_custom_ensemble = (hasattr(_LOADED_CLASSIFIER, '__class__') and 
                          _LOADED_CLASSIFIER.__class__.__name__ == 'CustomEnsemble')
     
@@ -815,11 +890,13 @@ def predict_post(text, return_probability=False):
     else:
         prediction = _LOADED_CLASSIFIER.predict(features_final)[0]
         
+        # If n-gram model available, combine predictions for better accuracy
         if return_probability and _LOADED_NGRAM_MODEL is not None and _LOADED_NGRAM_VECTORIZER is not None:
             base_proba = _LOADED_CLASSIFIER.predict_proba(features_final)[0, 1] if hasattr(_LOADED_CLASSIFIER, 'predict_proba') else float(prediction)
             ngram_proba = _LOADED_NGRAM_MODEL.predict_proba(
                 _LOADED_NGRAM_VECTORIZER.transform([text])
             )[0, 1]
+            # Weighted combination: 60% base model, 40% n-gram model
             probability = 0.6 * base_proba + 0.4 * ngram_proba
             prediction = 1 if probability >= 0.5 else 0
             return prediction, probability
@@ -834,32 +911,41 @@ def predict_post(text, return_probability=False):
 
 
 def predict_batch(texts, return_probabilities=False):
+    """
+    Predict fraud labels for multiple posts efficiently.
     
+    Args:
+        texts: List of text strings to classify
+        return_probabilities: If True, also return probability scores
     
+    Returns:
+        Array of predictions, or tuple of (predictions, probabilities) if return_probabilities=True
+    """
     global EMBEDDER, _LOADED_CLASSIFIER, _LOADED_SCALER, _LOADED_FEATURE_SELECTOR
     global _LOADED_NGRAM_MODEL, _LOADED_NGRAM_VECTORIZER
     
+    # Lazy load models on first prediction
     if _LOADED_CLASSIFIER is None or EMBEDDER is None or _LOADED_SCALER is None:
         (_LOADED_CLASSIFIER, EMBEDDER, _LOADED_SCALER, _LOADED_FEATURE_SELECTOR,
          _LOADED_NGRAM_MODEL, _LOADED_NGRAM_VECTORIZER) = load_model()
     
+    # Extract features for all texts
     embeddings = EMBEDDER.encode(texts, convert_to_numpy=True, show_progress_bar=True)
-    
     linguistic_features_list = []
     for text in texts:
         feat_dict = extract_linguistic_features(text)
         linguistic_features_list.append(list(feat_dict.values()))
-    
     linguistic_features = np.array(linguistic_features_list)
     
+    # Combine and preprocess features
     combined = np.hstack([embeddings, linguistic_features])
     scaled = _LOADED_SCALER.transform(combined)
-    
     if _LOADED_FEATURE_SELECTOR is not None:
         final_features = _LOADED_FEATURE_SELECTOR.transform(scaled)
     else:
         final_features = scaled
     
+    # Make predictions
     is_custom_ensemble = (hasattr(_LOADED_CLASSIFIER, '__class__') and 
                          _LOADED_CLASSIFIER.__class__.__name__ == 'CustomEnsemble')
     
@@ -871,6 +957,7 @@ def predict_batch(texts, return_probabilities=False):
     else:
         predictions = _LOADED_CLASSIFIER.predict(final_features)
         
+        # Combine with n-gram model if available
         if return_probabilities:
             if hasattr(_LOADED_CLASSIFIER, 'predict_proba'):
                 base_proba = _LOADED_CLASSIFIER.predict_proba(final_features)[:, 1]
@@ -881,6 +968,7 @@ def predict_batch(texts, return_probabilities=False):
                 ngram_proba = _LOADED_NGRAM_MODEL.predict_proba(
                     _LOADED_NGRAM_VECTORIZER.transform(texts)
                 )[:, 1]
+                # Weighted combination: 60% base model, 40% n-gram model
                 probabilities = 0.6 * base_proba + 0.4 * ngram_proba
                 predictions = (probabilities >= 0.5).astype(int)
             else:
